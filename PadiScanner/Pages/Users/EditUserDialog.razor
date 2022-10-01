@@ -1,0 +1,60 @@
+﻿@using PadiScanner.Data
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1" />
+            Ubah Data Pengguna
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @bind-IsValid="isValid" @ref="form">
+            <MudTextField @bind-Value="@Model.FullName" Label="Nama Lengkap"
+                          Required="true" RequiredError="Field harus diisi"
+                          Validation="@(new Func<string, string?>(ValidateLength))" />
+            <MudSelect T="UserRole" Label="Hak Akses" @bind-Value="@Model.Role" Required="true">
+                <MudSelectItem T="UserRole" Value="UserRole.Administrator" />
+                <MudSelectItem T="UserRole" Value="UserRole.Member" />
+                <MudSelectItem T="UserRole" Value="UserRole.Guest" />
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Batal</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Ok">Simpan</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm form;
+    private bool isValid;
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public EditRequest Model { get; set; } = new EditRequest();
+
+    private string? ValidateLength(string inputValue)
+    {
+        return string.IsNullOrWhiteSpace(inputValue) || inputValue.Length < 6
+            ? "Field harus lebih dari 6 karakter"
+            : null;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Ok()
+    {
+        await form.Validate();
+        if (!isValid)
+        {
+            return;
+        }
+
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}

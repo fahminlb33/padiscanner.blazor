@@ -1,0 +1,114 @@
+﻿@page "/auth/login"
+@using PadiScanner.Infra
+
+@inject NavigationManager navigationManager
+@inject ISnackbar snackbar
+
+@inject IAuthViewModel vm
+
+<PageTitle>Login</PageTitle>
+
+<MudGrid Class="mt-12">
+    <MudItem xs="12" sm="6" md="4">
+    </MudItem>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="25" Class="rounded-lg pb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5" Align="Align.Center">Login</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudForm>
+                    <MudTextField @bind-Value="username" Disabled="!ControlEnabled" T="string" Label="Username" Required="true" RequiredError="Username harus diisi!" />
+                    <MudTextField @bind-Value="password" Disabled="!ControlEnabled" T="string" Label="Password" Required="true" RequiredError="Password harus diisi!" InputType="InputType.Password"
+                                  Adornment="Adornment.End" AdornmentIcon="@_inputIcon" OnAdornmentClick="ToggleShowPassword" AdornmentAriaLabel="Show Password" />
+                    <div class="d-flex align-center justify-space-between mt-12">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Filled.WavingHand" Disabled="!ControlEnabled" OnClick="GuestLoginClick">Akses Tamu</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.Login" Disabled="!ControlEnabled" OnClick="LoginClick">Masuk</MudButton>
+                    </div>
+                </MudForm>
+            </MudCardContent>
+            <MudCardActions Class="d-flex justify-center">
+                <MudText>Masuk ke sistem Padi Scanner.</MudText>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="12" md="4">
+    </MudItem>
+</MudGrid>
+
+@code {
+    private InputType _inputType = InputType.Password;
+    private string _inputIcon = Icons.Material.Filled.VisibilityOff;
+    private bool _controlEnabled = false;
+    private bool ControlEnabled { get => _controlEnabled; set { _controlEnabled = value; StateHasChanged(); } }
+    
+    private string username = string.Empty;
+    private string password = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await vm.IsAuthenticated())
+        {
+            navigationManager.NavigateTo("/predictions");
+        }
+
+        ControlEnabled = true;
+    }
+
+    private void ToggleShowPassword()
+    {
+        if (_inputType == InputType.Password)
+        {
+            _inputType = InputType.Text;
+            _inputIcon = Icons.Material.Filled.Visibility;
+            return;
+        }
+
+        _inputType = InputType.Password;
+        _inputIcon = Icons.Material.Filled.VisibilityOff;
+    }
+
+    private async Task GuestLoginClick()
+    {
+        try
+        {
+            ControlEnabled = false;
+
+            await vm.GuestLogin();
+            navigationManager.NavigateTo("/predictions");
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            snackbar.Add("Login gagal", Severity.Error);
+        }
+
+        ControlEnabled = true;
+    }
+
+    private async Task LoginClick()
+    {
+        try
+        {
+            ControlEnabled = false;
+            
+            await vm.Login(username, password);
+            navigationManager.NavigateTo("/dashboard");
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            snackbar.Add("Login gagal", Severity.Error);
+        }
+
+        ControlEnabled = true;
+    }
+}

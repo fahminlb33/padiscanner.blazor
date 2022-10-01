@@ -1,0 +1,80 @@
+﻿@using PadiScanner.Data
+@using PadiScanner.Pages.Auth
+
+@inherits LayoutComponentBase
+@implements IDisposable
+
+@inject GlobalAppState GlobalState
+@inject NavigationManager navigationManager
+@inject IAuthViewModel authVm
+
+<MudThemeProvider IsDarkMode="@GlobalState.IsDarkMode" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h5" Class="ml-3">Padi Scanner</MudText>
+        <MudSpacer />
+        <MudSwitch @bind-Checked="@GlobalState.IsDarkMode" ThumbIcon="@GlobalState.DarkModeSwitchIcon" ThumbIconColor="Color.Warning">Dark Theme</MudSwitch>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <MudNavMenu Class="mud-width-full" Bordered="true">
+            <MudText Typo="Typo.h6" Class="mt-2 px-4">Padi Scanner</MudText>
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Aplikasi prediksi penyakit padi geospasial</MudText>
+            <MudDivider Class="my-2" />
+            <AuthorizeView>
+                <Authorized>
+                    <MudNavLink Href="/dashboard" Icon="@Icons.Filled.Dashboard">Dasbor</MudNavLink>
+                    <MudNavLink Href="/predictions" Icon="@Icons.Filled.AutoAwesome">Prediksi</MudNavLink>
+                    <MudNavLink Href="/maps" Icon="@Icons.Filled.Map">Peta Persebaran</MudNavLink>
+                    <MudNavLink Href="/users" Icon="@Icons.Filled.People">Pengguna</MudNavLink>
+                    <MudNavLink Href="/about" Icon="@Icons.Filled.Info">Tentang Aplikasi</MudNavLink>
+                    <MudDivider Class="my-2" />
+                    <MudNavLink OnClick="LogoutClick" Icon="@Icons.Filled.Logout">Logout</MudNavLink>
+                </Authorized>
+                <NotAuthorized>
+                    <MudNavLink Href="/auth/login" Icon="@Icons.Filled.Login">Login</MudNavLink>
+                    <MudNavLink Href="/about" Icon="@Icons.Filled.Info">Tentang Aplikasi</MudNavLink>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer>
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task LogoutClick()
+    {
+        await authVm.Logout();
+        navigationManager.NavigateTo("/auth/login");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await GlobalState.LoadFromStorage();
+    }
+
+    protected override void OnInitialized()
+    {
+        GlobalState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        GlobalState.OnChange -= StateHasChanged;
+    }
+}

@@ -1,0 +1,23 @@
+﻿@using Microsoft.JSInterop
+
+@inject IJSRuntime JSRuntime
+
+<div style="width: 100%; height: 100%;"  class="leafletMap" id="@Map.ElementId"></div>
+
+
+@code {
+    [Parameter] 
+    public Map Map { get; set; }
+    
+    [Parameter] 
+    public TileLayer TileLayer { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Map.BindJsObjectReference(new LeafletMapJSBinder(JSRuntime));
+            await TileLayer.AddTo(Map);
+        }
+    }
+}

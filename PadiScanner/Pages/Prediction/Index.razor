@@ -1,0 +1,170 @@
+﻿@page "/predictions"
+
+@using Microsoft.EntityFrameworkCore
+@using PadiScanner.Data
+@using PadiScanner.Infra
+
+@attribute [Authorize(Policy = AppPolicies.Guest)]
+
+@inject ISnackbar snackbar
+@inject IDialogService dialogService
+@inject NavigationManager navigationManager
+
+@inject ILogger<PredictionsViewModel> logger
+@inject IPredictionsViewModel vm
+
+<PageTitle>Prediksi Penyakit Padi</PageTitle>
+
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <MudText Typo="Typo.h4">Prediksi Penyakit Padi <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" Class="ml-2" OnClick="GotoUpload">Unggah</MudButton></MudText>
+    <MudText Typo="Typo.subtitle1">Lakukan prediksi penyakit pada tanaman padi.</MudText>
+</div>
+
+<MudTable ServerData="@ServerReload" Dense="false" Hover="true" @ref="table">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Riwayat Prediksi</MudText>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="OnSearch" Placeholder="Cari" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="uploader_name" T="PredictionHistory">Pengunggah</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="location" T="PredictionHistory">Lokasi</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="uploaded_at" T="PredictionHistory">Tanggal Diunggah</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="processed_at" T="PredictionHistory">Tanggal Diproses</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="result" T="PredictionHistory">Hasil</MudTableSortLabel></MudTh>
+        <MudTh><MudText>Aksi</MudText></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Uploader.FullName">@context.Uploader.FullName</MudTd>
+        <MudTd DataLabel="Location">@context.Location</MudTd>
+        <MudTd DataLabel="UploadedAt">@context.UploadedAt</MudTd>
+        <MudTd DataLabel="ProcessedAt">@context.ProcessedAt</MudTd>
+        <MudTd DataLabel="Result">@context.Result</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Image" aria-label="edit" OnClick="@(() => ShowPredictionsClick(context.Id))" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="@(() => DeleteClick(context.Id))" />
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>Data tidak ditemukan!</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Memproses...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private MudTable<PredictionHistory> table;
+
+    private int totalItems;
+    private string searchString = null;
+
+    private void GotoUpload()
+    {
+        navigationManager.NavigateTo("predictions/upload");
+    }
+
+    private async Task<TableData<PredictionHistory>> ServerReload(TableState state)
+    {
+        var (totalItems, items) = await vm.PopulateTable(searchString, state);
+        return new TableData<PredictionHistory>() { TotalItems = totalItems, Items = items };
+    }
+
+    private async Task OnSearch(string text)
+    {
+        searchString = text;
+        await table.ReloadServerData();
+    }
+
+    private async Task ShowPredictionsClick(Ulid id)
+    {
+        try
+        {
+            // get prediction history
+            var prediction = await vm.Get(id);
+            if (prediction == null)
+            {
+                snackbar.Add("Data tidak ditemukan!", Severity.Error);
+                return;
+            }
+
+            // project data
+            var images = new List<PredictionImage>();
+            if (prediction.OriginalImageUrl != null)
+            {
+                images.Add(new PredictionImage(prediction.OriginalImageUrl.ToString(), "Gambar Asli"));
+            }
+            if (prediction.HeatmapImageUrl != null)
+            {
+                images.Add(new PredictionImage(prediction.HeatmapImageUrl.ToString(), "Heatmap"));
+            }
+            if (prediction.OverlayedImageUrl != null)
+            {
+                images.Add(new PredictionImage(prediction.OverlayedImageUrl.ToString(), "Gambar Overlay"));
+            }
+            if (prediction.ClippedImageUrl != null)
+            {
+                images.Add(new PredictionImage(prediction.ClippedImageUrl.ToString(), "Gambar Terpotong"));
+            }
+
+            // if empty, show snackbar
+            if (images.Count == 0)
+            {
+                snackbar.Add("Tidak ada gambar yang dapat ditampilkan!", Severity.Warning);
+                return;
+            }
+
+            // show images
+            var parameters = new DialogParameters { ["Images"] = images };
+            var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseButton = true
+            };
+            dialogService.Show<PredictionImageDialog>("Analisis Citra", parameters, options);
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when showing prediction images");
+            snackbar.Add("Gagal menampilkan analisis citra.", Severity.Error);
+        }
+    }
+    
+    private async void DeleteClick(Ulid id)
+    {
+        try
+        {
+            // show confirmation
+            var result = await dialogService.ShowMessageBox("Hapus?", $"Apakah Anda yakin ingin menghapus prediksi ini?", yesText: "Hapus!", cancelText: "Batal");
+            if (result == false)
+            {
+                return;
+            }
+
+            // delete
+            await vm.Delete(id);
+
+            // reload data
+            snackbar.Add("Data berhasil dihapus.", Severity.Success);
+            await table.ReloadServerData();
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when deleting prediction history");
+            snackbar.Add("Gagal menghapus data.", Severity.Error);
+        }
+    }
+}

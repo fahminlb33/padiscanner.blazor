@@ -1,0 +1,68 @@
+﻿@using PadiScanner.Components.Leaflet
+@using PadiScanner.Infra
+
+@page "/maps"
+@implements IAsyncDisposable
+@attribute [Authorize(Policy = AppPolicies.Member)]
+
+@inject IMapsViewModel vm;
+
+<PageTitle>Peta Persebaran Penyakit Padi</PageTitle>
+
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <MudText Typo="Typo.h4">Peta Persebaran Penyakit Padi</MudText>
+    <MudText Typo="Typo.subtitle1">Pemetaan geospasial penyebaran deteksi penyakit padi.</MudText>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex">
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+    </div>
+}
+<MudContainer Style="width: 100%; height: 70vh;">
+    <LeafletMap Map="PositionMap" TileLayer="OpenStreetMapsTileLayer" />
+</MudContainer>
+
+
+@code {
+    private bool isLoading = true;
+    Map PositionMap = new Map("testMap", new MapOptions
+        {
+            Center = new LatLng(-2.548926, 118.0148634),
+            Zoom = 5
+        });
+    TileLayer OpenStreetMapsTileLayer = new TileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        new TileLayerOptions
+            {
+                Attribution = @"Map data &copy; <a href=""https://www.openstreetmap.org/"">OpenStreetMap</a> contributors, " +
+                            @"<a href=""https://creativecommons.org/licenses/by-sa/2.0/"">CC-BY-SA</a>"
+            }
+    );
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var markers = vm.GetMapMarkers();
+        await foreach (var marker in markers)
+        {
+            var coord = new LatLng(marker.Latitude, marker.Longitude);
+            var options = new MarkerOptions { Title = marker.Title };
+
+            var markerControl = new Marker(coord, options);
+            await markerControl.AddTo(PositionMap);
+            await markerControl.BindPopup(marker.PopupContent);
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await OpenStreetMapsTileLayer.DisposeAsync();
+        await PositionMap.DisposeAsync();
+    }
+}

@@ -1,0 +1,75 @@
+﻿@page "/dashboard"
+
+@using PadiScanner.Infra
+
+@attribute [Authorize(Policy = AppPolicies.Member)]
+@inject IDashboardViewModel vm
+
+<PageTitle>Dasbor</PageTitle>
+
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <MudText Typo="Typo.h4">Selamat datang!</MudText>
+    <MudText Typo="Typo.subtitle1">Pilih menu pada sidebar untuk memulai.</MudText>
+</div>
+
+<MudGrid Spacing="3" Justify="Justify.FlexStart">
+    <MudItem>
+        <MudPaper Class="pa-4"Width="300px" Height="150px">
+            <MudText Typo="Typo.h6">Jumlah Laporan</MudText>
+            <MudText Typo="Typo.h3" Class="mt-3" Align="Align.Center">@stats.ReportCount</MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem>
+        <MudPaper Class="pa-4" Width="300px" Height="150px">
+            <MudText Typo="Typo.h6">Jumlah Deteksi Positif</MudText>
+            <MudText Typo="Typo.h3" Color="Color.Error" Class="mt-3" Align="Align.Center">@stats.PositiveCount</MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem>
+        <MudPaper Class="pa-4" Width="300px" Height="150px">
+            <MudText Typo="Typo.h6">Jumlah Deteksi Negatif</MudText>
+            <MudText Typo="Typo.h3" Color="Color.Success" Class="mt-3" Align="Align.Center">@stats.NegativeCount</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem>
+        <MudPaper Class="pa-4" Width="300px" Height="300px">
+            <MudText Typo="Typo.h6">Statistik Prediksi Penyakit</MudText>
+            <MudChart ChartType="ChartType.Donut" Width="200px" Height="175px" InputData="@diseaseChart.Sizes" InputLabels="@diseaseChart.Labels"></MudChart>
+        </MudPaper>
+    </MudItem>
+    <MudItem>
+        <MudPaper Class="pa-4" Width="300px" Height="300px">
+            <MudText Typo="Typo.h6">Statistik Prediksi per Wilayah</MudText>
+            <MudChart ChartType="ChartType.Donut" Width="200px" Height="175px" InputData="@predictionByLocationChart.Sizes" InputLabels="@predictionByLocationChart.Labels"></MudChart>
+        </MudPaper>
+    </MudItem>
+    <MudItem>
+        <MudPaper Class="pa-4" Width="300px" Height="140px">
+            <MudText Typo="Typo.body1">Daerah dengan Deteksi Penyakit Padi Terbanyak</MudText>
+            <MudBadge Overlap="true" Color="Color.Info" Class="my-3" Style="margin: 0 auto; display: table;" Content="@stats.MostInfectedCount">
+                <MudText Typo="Typo.h4" Color="Color.Error" Align="Align.Center">@stats.MostInfectedLocation</MudText>
+            </MudBadge>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4" Width="300px" Height="140px">
+            <MudText Typo="Typo.body1">Daerah dengan Jumlah Pelaporan Terbanyak</MudText>
+            <MudBadge Overlap="true" Color="Color.Info" Class="my-3" Style="margin: 0 auto; display: table;" Content="@stats.MostReportCount">
+                <MudText Typo="Typo.h4" Align="Align.Center">@stats.MostReportLocation</MudText>
+            </MudBadge>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private DashboardStatsCounter stats = new();
+    private DashboardChartData diseaseChart = new();
+    private DashboardChartData predictionByLocationChart = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        stats = await vm.GetStatistics();
+        diseaseChart = await vm.GetDiseaseChart();
+        predictionByLocationChart = await vm.GetPredictionByLocationChart();
+    }
+}

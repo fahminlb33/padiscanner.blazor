@@ -1,0 +1,26 @@
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <div style="margin-top: 3em; margin-bottom: 3em;">
+                        <MudText Typo="Typo.h4">Akses Ditolak</MudText>
+                        <MudText Typo="Typo.subtitle1">Anda tidak memiliki akses ke halaman ini.</MudText>
+                    </div>
+                </NotAuthorized>
+                <Authorizing>
+                    <div style="margin-top: 3em; margin-bottom: 3em;">
+                        <MudText Typo="Typo.h4">Harap Tunggu!</MudText>
+                        <MudText Typo="Typo.subtitle1">Sistem sedang memproses otentikasi.</MudText>
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

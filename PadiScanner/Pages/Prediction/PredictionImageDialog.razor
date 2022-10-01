@@ -1,0 +1,30 @@
+﻿<MudDialog>
+	<DialogContent>
+		<MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@Images" Style="height: 500px; width: 100%;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="false">
+			<ItemTemplate>
+				<div class="d-flex flex-column justify-center" style="height: 100%">
+					<MudImage Src="@context.ImageUrl" Alt="@context.Title" Height="300" ObjectFit="ObjectFit.Contain" ObjectPosition="ObjectPosition.Center" />
+					<MudText Align="@Align.Center" Class="mx-auto mt-8">@context.Title</MudText>
+				</div>
+			</ItemTemplate>
+		</MudCarousel>
+	</DialogContent>
+	<DialogActions>
+		<MudButton Color="Color.Primary" OnClick="Close">Tutup</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	private MudCarousel<PredictionImage> _carousel;
+
+	[CascadingParameter]
+	MudDialogInstance MudDialog { get; set; }
+
+	[Parameter]
+	public List<PredictionImage> Images { get; set; } = new();
+
+	private void Close()
+	{
+		MudDialog.Close();
+	}
+}

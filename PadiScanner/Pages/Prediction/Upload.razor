@@ -1,0 +1,166 @@
+﻿@page "/predictions/upload"
+
+@using PadiScanner.Components.Geolocation
+@using PadiScanner.Infra
+@using System.Security.Claims
+
+@attribute [Authorize(Policy = AppPolicies.Guest)]
+
+@inject AuthenticationStateProvider authProvider
+@inject ILogger<PredictionsViewModel> logger
+@inject NavigationManager navigationManager
+
+@inject ILocationService locationService
+@inject IPredictionsViewModel controller
+
+<PageTitle>Prediksi Penyakit Padi</PageTitle>
+
+@inject ISnackbar snackbar
+@inject IDialogService dialogService
+
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <MudText Typo="Typo.h4">Unggah Foto Padi</MudText>
+    <MudText Typo="Typo.subtitle1">Unggah foto padi untuk diklasifikasi.</MudText>
+</div>
+
+<MudText Typo="Typo.h6">Informasi Akuisisi Data Padi</MudText>
+<div class="d-flex gap-3">
+    <MudTextField @bind-Value="location" Label="Lokasi" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Map" />
+    <MudTextField @bind-Value="latitude" Label="Latitude" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PinDrop" />
+    <MudTextField @bind-Value="longitude" Label="Latitude" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PinDrop" />
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PinDrop" Color="Color.Primary" OnClick="FindLocationClick">Cari Lokasi</MudButton>
+</div>
+<MudPaper @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass" Height="300px" Outlined="true" Class="@DragClass">
+    @if (!Clearing)
+    {
+        <InputFile OnChange="OnInputFileChanged" class="absolute mud-width-full mud-height-full overflow-hidden z-2" style="opacity:0;" accept="image/png,image/jpeg" multiple capture />
+    }
+    <MudIcon Icon="@Icons.Material.Filled.Upload" Class="mt-2" />
+    <MudText Typo="Typo.h6">Tarik berkas foto atau klik di sini</MudText>
+    @foreach (var file in fileNames)
+    {
+        <MudChip Color="Color.Dark" Text="@file" />
+    }
+</MudPaper>
+<MudToolBar DisableGutters="true" Class="gap-4">
+    <MudButton OnClick="UploadClick" Disabled="@(!ControlEnabled)" Color="Color.Primary" Variant="Variant.Filled">Unggah</MudButton>
+    <MudButton OnClick="ClearClick" Disabled="@(!ControlEnabled)" Color="Color.Error" Variant="Variant.Filled">Batal</MudButton>
+</MudToolBar>
+
+@code {
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+
+    private bool Clearing = false;
+    private string DragClass = DefaultDragClass;
+    private bool _controlEnabled = false;
+    private bool ControlEnabled { get => _controlEnabled; set { _controlEnabled = value; StateHasChanged(); } }
+
+    private List<IBrowserFile> loadedFiles = new();
+    private List<string> fileNames = new();
+
+    private string location = string.Empty;
+    private double latitude = 0.0;
+    private double longitude = 0.0;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        // set drag style
+        ClearDragClass();
+
+        // load all selected files 
+        var files = e.GetMultipleFiles();
+        foreach (var file in files)
+        {
+            // filter out non PNG/JPG/JPEG files
+            if (file.ContentType != "image/png" && file.ContentType != "image/jpeg")
+            {
+                continue;
+            }
+
+            // add to queue
+            loadedFiles.Add(file);
+            fileNames.Add(file.Name);
+        }
+
+        // enable controls
+        if (loadedFiles.Count == 0) return;
+        ControlEnabled = true;
+    }
+
+    private async Task FindLocationClick()
+    {
+        try
+        {
+            // get location from Geolocation API
+            var g = await locationService.GetLocationAsync();
+
+            // set model lat/long
+            latitude = g.Latitude;
+            longitude = g.Longitude;
+
+            snackbar.Add(string.Format("Lokasi ditemukan: ({0}; {1}) dengan akurasi {2}", g.Latitude, g.Longitude, g.Accuracy));
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Cannot get location");
+            await dialogService.ShowMessageBox("Lokasi tidak ditemukan", "Gagal menentukan lokasi melalui GPS. Cek kembali hak akses lokasi.");
+        }
+    }
+
+    private async void UploadClick()
+    {
+        try
+        {
+            ControlEnabled = false;
+
+            // get authenticated user
+            var authState = await authProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
+
+            // upload queue to server
+            await controller.Upload(Ulid.Parse(userId), location, latitude, longitude, loadedFiles);
+
+            snackbar.Add("Sukses mengunggah foto!");
+            navigationManager.NavigateTo("/predictions");
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Cannot upload images");
+            await dialogService.ShowMessageBox("Gagal unggah", "Gagal mengunggah ke sistem, coba beberapa saat lagi.");
+            navigationManager.NavigateTo("/predictions");
+        }
+
+        ControlEnabled = true;
+    }
+
+    private async Task ClearClick()
+    {
+        ControlEnabled = false;
+        Clearing = true;
+
+        loadedFiles.Clear();
+        fileNames.Clear();
+        ClearDragClass();
+
+        await Task.Delay(100);
+        Clearing = false;
+    }
+
+    private void SetDragClass()
+    {
+        DragClass = $"{DefaultDragClass} mud-border-primary";
+    }
+
+    private void ClearDragClass()
+    {
+        DragClass = DefaultDragClass;
+    }
+}

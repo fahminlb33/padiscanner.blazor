@@ -1,0 +1,214 @@
+﻿@page "/users"
+
+@using AutoMapper
+@using Microsoft.EntityFrameworkCore
+@using PadiScanner.Data
+@using PadiScanner.Infra
+
+@attribute [Authorize(Policy = AppPolicies.Administrator)]
+
+@inject ISnackbar snackbar
+@inject IDialogService dialogService
+
+@inject IMapper mapper
+@inject ILogger<UserViewModel> logger
+@inject IUserViewModel vm
+
+<PageTitle>Pengguna</PageTitle>
+
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <MudText Typo="Typo.h4">Manajemen Pengguna <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Class="ml-2" OnClick="CreateClick">Tambah</MudButton></MudText>
+    <MudText Typo="Typo.subtitle1">Tambah, ubah, dan hapus pengguna dari sistem.</MudText>
+</div>
+
+<MudTable ServerData="@PopulateTable" Dense="false" Hover="true" @ref="table">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Pengguna</MudText>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="OnSearch" Placeholder="Cari" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="full_name" T="User">Nama Lengkap</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="username" T="User">Username</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="role" T="User">Hak Akses</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="last_login" T="User">Terakhir Login</MudTableSortLabel></MudTh>
+        <MudTh><MudText>Aksi</MudText></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="FullName">@context.FullName</MudTd>
+        <MudTd DataLabel="Username">@context.Username</MudTd>
+        <MudTd DataLabel="Role">@context.Role</MudTd>
+        <MudTd DataLabel="LastLoginAt">@context.LastLoginAt</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" aria-label="edit" OnClick="@(() => EditClick(context.Id))"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Key" aria-label="change password" OnClick="@(() => ChangePasswordClick(context.Id))"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="@(() => DeleteClick(context.Id, context.FullName))"></MudIconButton>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>Data tidak ditemukan!</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Memproses...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private MudTable<User> table;
+
+    private int totalItems;
+    private string searchString = null;
+
+    private async Task<TableData<User>> PopulateTable(TableState state)
+    {
+        var (totalItems, items) = await vm.PopulateTable(searchString, state);
+        return new TableData<User>() { TotalItems = totalItems, Items = items };
+    }
+
+    private async Task OnSearch(string text)
+    {
+        searchString = text;
+        await table.ReloadServerData();
+    }
+
+    private async Task CreateClick()
+    {
+        try
+        {
+            // show dialog
+            var dialog = dialogService.Show<CreateUserDialog>("Tambah Pengguna");
+            var result = await dialog.Result;
+            if (result.Cancelled)
+            {
+                return;
+            }
+
+            // update data
+            await vm.Create((CreateRequest)result.Data);
+
+            // reload data
+            snackbar.Add("Data berhasil disimpan.", Severity.Success);
+            await table.ReloadServerData();
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when updating user data");
+            snackbar.Add("Gagal menghapus data.", Severity.Error);
+        }
+    }
+
+    private async Task EditClick(Ulid id)
+    {
+        try
+        {
+            // get the data
+            var user = await vm.Get(id);
+            if (user == null)
+            {
+                snackbar.Add("Data tidak ditemukan.", Severity.Error);
+                return;
+            }
+
+            // show 
+            var parameters = new DialogParameters { ["Model"] = mapper.Map<EditRequest>(user) };
+            var dialog = dialogService.Show<EditUserDialog>("Ubah Data", parameters);
+            var result = await dialog.Result;
+            if (result.Cancelled)
+            {
+                return;
+            }
+
+            // update data
+            await vm.Edit((EditRequest)result.Data);
+
+            // reload data
+            snackbar.Add("Data berhasil disimpan.", Severity.Success);
+            await table.ReloadServerData();
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when updating user data");
+            snackbar.Add("Gagal menghapus data.", Severity.Error);
+        }
+    }
+
+    private async Task ChangePasswordClick(Ulid id)
+    {
+        try
+        {
+            // get the data
+            var user = await vm.Get(id);
+            if (user == null)
+            {
+                snackbar.Add("Data tidak ditemukan.", Severity.Error);
+                return;
+            }
+
+            // show dialog
+            var parameters = new DialogParameters { ["Model"] = new ChangePasswordRequest { Id = id } };
+            var dialog = dialogService.Show<ChangePasswordDialog>("Ganti Password");
+            var result = await dialog.Result;
+            if (result.Cancelled)
+            {
+                return;
+            }
+
+            // update data
+            await vm.ChangePassword((ChangePasswordRequest)result.Data);
+
+            // reload data
+            snackbar.Add("Password berhasil diubah berhasil disimpan.", Severity.Success);
+            await table.ReloadServerData();
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when changing user password");
+            snackbar.Add("Gagal menghapus data.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteClick(Ulid id, string name)
+    {
+        try
+        {
+            // show confirmation
+            var result = await dialogService.ShowMessageBox("Hapus?", $"Apakah Anda yakin ingin menghapus akun '{name}?'", yesText: "Hapus!", cancelText: "Batal");
+            if (result == false)
+            {
+                return;
+            }
+
+            // delete
+            await vm.Delete(id);
+
+            // reload data
+            snackbar.Add("Data berhasil dihapus.", Severity.Success);
+            await table.ReloadServerData();
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when deleting user");
+            snackbar.Add("Gagal menghapus data.", Severity.Error);
+        }
+    }
+}
