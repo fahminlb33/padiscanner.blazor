@@ -21,10 +21,7 @@ Log.Logger = new LoggerConfiguration().CreateBootstrapLogger();
 var builder = WebApplication.CreateBuilder(args);
 
 // load configuration
-builder.Configuration
-    .AddEnvironmentVariables("PADI_")
-    .AddJsonFile("appsettings.json", true)
-    .AddJsonFile("appsettings.Development.json", true);
+builder.Configuration.AddEnvironmentVariables("PADI_");
 
 builder.Services.Configure<PadiConfiguration>(builder.Configuration);
 var config = builder.Configuration.Get<PadiConfiguration>()!;
