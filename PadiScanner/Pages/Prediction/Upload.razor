@@ -46,12 +46,20 @@
     <MudButton OnClick="UploadClick" Disabled="@(!ControlEnabled)" Color="Color.Primary" Variant="Variant.Filled">Unggah</MudButton>
     <MudButton OnClick="ClearClick" Disabled="@(!ControlEnabled)" Color="Color.Error" Variant="Variant.Filled">Batal</MudButton>
 </MudToolBar>
+@if (_isLoading)
+{
+    <div class="d-flex">
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+    </div>
+}
 
 @code {
     private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
 
     private bool Clearing = false;
     private string DragClass = DefaultDragClass;
+    private bool _isLoading = false;
+    private bool IsLoading { get => _isLoading; set { _isLoading = value; StateHasChanged(); } }
     private bool _controlEnabled = false;
     private bool ControlEnabled { get => _controlEnabled; set { _controlEnabled = value; StateHasChanged(); } }
 
@@ -115,6 +123,7 @@
     {
         try
         {
+            IsLoading = true;
             ControlEnabled = false;
 
             // get authenticated user
@@ -138,6 +147,7 @@
             navigationManager.NavigateTo("/predictions");
         }
 
+        IsLoading = false;
         ControlEnabled = true;
     }
 
