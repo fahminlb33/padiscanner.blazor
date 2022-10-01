@@ -21,7 +21,7 @@
             <MudCardContent>
                 <MudForm>
                     <MudTextField @bind-Value="username" Disabled="!ControlEnabled" T="string" Label="Username" Required="true" RequiredError="Username harus diisi!" />
-                    <MudTextField @bind-Value="password" Disabled="!ControlEnabled" T="string" Label="Password" Required="true" RequiredError="Password harus diisi!" InputType="InputType.Password"
+                    <MudTextField @bind-Value="password" Disabled="!ControlEnabled" T="string" Label="Password" Required="true" RequiredError="Password harus diisi!" InputType="_inputType"
                                   Adornment="Adornment.End" AdornmentIcon="@_inputIcon" OnAdornmentClick="ToggleShowPassword" AdornmentAriaLabel="Show Password" />
                     <div class="d-flex align-center justify-space-between mt-12">
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Filled.WavingHand" Disabled="!ControlEnabled" OnClick="GuestLoginClick">Akses Tamu</MudButton>
