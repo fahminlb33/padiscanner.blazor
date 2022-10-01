@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -10,11 +10,17 @@ using PadiScanner.Pages.Dashboard;
 using PadiScanner.Pages.Maps;
 using PadiScanner.Pages.Prediction;
 using PadiScanner.Pages.Users;
+using Serilog;
 using System.Reflection;
 using System.Security.Claims;
 
+// setup logging
+Log.Logger = new LoggerConfiguration().CreateBootstrapLogger();
+
+// create builder
 var builder = WebApplication.CreateBuilder(args);
 
+// load configuration
 builder.Configuration
     .AddEnvironmentVariables("PADI_")
     .AddJsonFile("appsettings.json", true)
@@ -23,7 +29,22 @@ builder.Configuration
 builder.Services.Configure<PadiConfiguration>(builder.Configuration);
 var config = builder.Configuration.Get<PadiConfiguration>()!;
 
+// logging
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog();
+builder.Host.UseSerilog((context, services, loggerConfig) =>
+{
+    var telemetryService = services.GetRequiredService<TelemetryConfiguration>();
+    loggerConfig
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
+        .Enrich.WithEnvironmentName()
+        .WriteTo.Console()
+        .WriteTo.ApplicationInsights(telemetryService, TelemetryConverter.Traces);
+});
+
 // Add services to the container.
+builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
