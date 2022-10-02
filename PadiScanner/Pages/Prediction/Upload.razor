@@ -106,7 +106,7 @@
             latitude = g.Latitude;
             longitude = g.Longitude;
 
-            snackbar.Add(string.Format("Lokasi ditemukan: ({0}; {1}) dengan akurasi {2}", g.Latitude, g.Longitude, g.Accuracy));
+            snackbar.Add(string.Format("Lokasi ditemukan: ({0}; {1}) dengan akurasi {2}", g.Latitude, g.Longitude, g.Accuracy), Severity.Success);
         }
         catch (PadiException pe)
         {
@@ -133,7 +133,7 @@
             // upload queue to server
             await controller.Upload(Ulid.Parse(userId), location, latitude, longitude, loadedFiles);
 
-            snackbar.Add("Sukses mengunggah foto!");
+            snackbar.Add("Sukses mengunggah foto!", Severity.Success);
             navigationManager.NavigateTo("/predictions");
         }
         catch (PadiException pe)
