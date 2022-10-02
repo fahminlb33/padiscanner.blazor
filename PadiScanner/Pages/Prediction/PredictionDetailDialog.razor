@@ -1,0 +1,64 @@
+﻿@using PadiScanner.Data
+
+@inject IJSRuntime jsruntime;
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.BarChart" Class="mr-3" /> Probabilitas Prediksi
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>Pengunggah: @Model.Uploader.FullName</MudText>
+        <MudText>Lokasi: @Model.Location</MudText>
+        <MudText>Tanggal Diunggah: @Model.UploadedAt</MudText>
+        <MudText>Tanggal Diproses: @Model.ProcessedAt</MudText>
+        <MudText>Status: @Model.Status</MudText>
+        <MudText>Hasil: <b>@Model.Result</b></MudText>
+        @if (Model.Probabilities != null)
+        {
+            <MudText>Probabilitas Klasifikasi:</MudText>
+
+            int i = 0;
+            foreach (var item in Model.Probabilities.ToList().OrderByDescending(x => x.Value))
+            {
+                Color chipColor = Color.Default;
+                if (i == 0 && item.Key == "HEALTHY")
+                {
+                    chipColor = Color.Success;
+                }
+                else if (i == 0 && item.Key != "HEALTHY")
+                {
+                    chipColor = Color.Error;
+                }
+
+                <MudChip Color="chipColor">@item.Key @item.Value.ToString("F2")%</MudChip>
+
+                i++;
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="OpenInGmap" StartIcon="@Icons.Material.Filled.Map">Buka di Google Maps</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="Close">Tutup</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public PredictionHistory Model { get; set; } = new();
+
+    private void Close()
+    {
+        MudDialog.Close();
+    }
+
+    private async Task OpenInGmap()
+    {
+        var url = $"https://www.google.com/maps/search/?api=1&query={Model.Latitude},{Model.Longitude}";
+        await jsruntime.InvokeVoidAsync("open", url, "_blank");
+    }
+}

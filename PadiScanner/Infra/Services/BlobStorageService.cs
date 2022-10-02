@@ -2,7 +2,7 @@
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
 
-namespace PadiScanner.Infra;
+namespace PadiScanner.Infra.Services;
 
 public interface IBlobStorageService
 {
@@ -18,7 +18,7 @@ public class BlobStorageService : IBlobStorageService
     public BlobStorageService(IOptions<PadiConfiguration> options)
     {
         _config = options.Value;
-        
+
         var sharedKey = new StorageSharedKeyCredential(_config.StorageAccount.AccountName, _config.StorageAccount.AccountKey);
         _client = new(new Uri(_config.StorageAccount.BlobHost), sharedKey);
     }

@@ -20,7 +20,7 @@
     <MudText Typo="Typo.subtitle1">Lakukan prediksi penyakit pada tanaman padi.</MudText>
 </div>
 
-<MudTable ServerData="@ServerReload" Dense="false" Hover="true" Class="mb-5" @ref="table">
+<MudTable ServerData="@ServerReload" Dense="true" Hover="true" Class="mb-12" @ref="table">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Riwayat Prediksi</MudText>
         <MudSpacer />
@@ -30,8 +30,9 @@
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="uploader_name" T="PredictionHistory">Pengunggah</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortLabel="location" T="PredictionHistory">Lokasi</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="uploaded_at" T="PredictionHistory">Tanggal Diunggah</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="uploaded_at" T="PredictionHistory" InitialDirection="SortDirection.Descending">Tanggal Diunggah</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortLabel="processed_at" T="PredictionHistory">Tanggal Diproses</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="status" T="PredictionHistory">Status</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortLabel="result" T="PredictionHistory">Hasil</MudTableSortLabel></MudTh>
         <MudTh><MudText>Aksi</MudText></MudTh>
     </HeaderContent>
@@ -40,9 +41,11 @@
         <MudTd DataLabel="Location">@context.Location</MudTd>
         <MudTd DataLabel="UploadedAt">@context.UploadedAt</MudTd>
         <MudTd DataLabel="ProcessedAt">@context.ProcessedAt</MudTd>
+        <MudTd DataLabel="Status">@context.Status</MudTd>
         <MudTd DataLabel="Result">@context.Result</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.Image" aria-label="edit" OnClick="@(() => ShowPredictionsClick(context.Id))" />
+            <MudIconButton Icon="@Icons.Material.Filled.BarChart" aria-label="probabilities" OnClick="@(() => ShowProbabilitiesClick(context.Id))" />
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="@(() => DeleteClick(context.Id))" />
         </MudTd>
     </RowTemplate>
@@ -138,8 +141,41 @@
             snackbar.Add("Gagal menampilkan analisis citra.", Severity.Error);
         }
     }
-    
-    private async void DeleteClick(Ulid id)
+
+    private async Task ShowProbabilitiesClick(Ulid id)
+    {
+        try
+        {
+            // get prediction history
+            var prediction = await vm.GetWithRelation(id);
+            if (prediction == null)
+            {
+                snackbar.Add("Data tidak ditemukan!", Severity.Error);
+                return;
+            }
+            
+            // show message box
+            var parameters = new DialogParameters { ["Model"] = prediction };
+            var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                CloseButton = true
+            };
+            dialogService.Show<PredictionDetailDialog>("Probabilitas Klasifikasi", parameters, options);
+        }
+        catch (PadiException pe)
+        {
+            snackbar.Add(pe.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when showing prediction probabilities");
+            snackbar.Add("Gagal menampilkan probabiilitas klasifikasi.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteClick(Ulid id)
     {
         try
         {

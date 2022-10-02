@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using PadiScanner.Data;
 using PadiScanner.Infra;
+using PadiScanner.Infra.Services;
 
 namespace PadiScanner.Pages.Prediction;
 
@@ -11,6 +12,7 @@ public record PredictionImage(string ImageUrl, string Title);
 public interface IPredictionsViewModel
 {
     Task<PredictionHistory?> Get(Ulid id);
+    Task<PredictionHistory?> GetWithRelation(Ulid id);
     Task Delete(Ulid id);
     Task Upload(Ulid userId, string location, double latitude, double longitude, IEnumerable<IBrowserFile> files);
     Task<(int TotalItems, IList<PredictionHistory> Items)> PopulateTable(string searchText, TableState state);
@@ -30,6 +32,11 @@ public class PredictionsViewModel : IPredictionsViewModel
     public async Task<PredictionHistory?> Get(Ulid id)
     {
         return await _context.Predictions.FindAsync(id);
+    }
+
+    public async Task<PredictionHistory?> GetWithRelation(Ulid id)
+    {
+        return await _context.Predictions.Include(x => x.Uploader).SingleAsync(x => x.Id.Equals(id));
     }
 
     public async Task Delete(Ulid id)
@@ -83,7 +90,7 @@ public class PredictionsViewModel : IPredictionsViewModel
 
             // prepare blob name
             var ext = file.ContentType == "image/png" ? ".png" : ".jpg";
-            var path = $"{userId}/{id}_{ext}";
+            var path = $"{userId}/{id}/original{ext}";
 
             // upload
             var stream = file.OpenReadStream(PadiConfiguration.MaxUploadSize);
@@ -106,7 +113,7 @@ public class PredictionsViewModel : IPredictionsViewModel
                 Longitude = longitude,
                 OriginalImageUrl = uploadedUri,
                 Uploader = uploader,
-                Result = "QUEUED"
+                Status = PredictionStatus.Queued
             });
         }
 
@@ -134,8 +141,9 @@ public class PredictionsViewModel : IPredictionsViewModel
             "location" => query.OrderByDirection(state.SortDirection, x => x.Location),
             "uploaded_at" => query.OrderByDirection(state.SortDirection, x => x.UploadedAt),
             "processed_at" => query.OrderByDirection(state.SortDirection, x => x.ProcessedAt),
+            "status" => query.OrderByDirection(state.SortDirection, x => x.Status),
             "result" => query.OrderByDirection(state.SortDirection, x => x.Result),
-            _ => query.OrderBy(x => x.Id)
+            _ => query.OrderBy(x => x.UploadedAt)
         };
 
         // get the total count

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PadiScanner.Data;
 using PadiScanner.Infra;
 
 namespace PadiScanner.Pages.Dashboard;
@@ -23,14 +24,14 @@ public class DashboardViewModel : IDashboardViewModel
     {
         var resultsGroup = await _context.Predictions
               .AsNoTracking()
-              .Where(x => x.Result != null && x.Result != "HEALTHY" && x.Result != "QUUEUED")
+              .Where(x => x.Status == PredictionStatus.Success && x.Result != "HEALTHY")
               .GroupBy(x => x.Result)
-              .OrderByDescending(x => x.Count())
               .Select(x => new
               {
-                  Result = x.Key!,
+                  Result = $"{x.Key} ({x.Count()})",
                   Count = x.Count()
               })
+              .OrderByDescending(x => x.Count)
               .ToListAsync();
 
         return new DashboardChartData
@@ -44,14 +45,13 @@ public class DashboardViewModel : IDashboardViewModel
     {
         var resultsGroup = await _context.Predictions
               .AsNoTracking()
-              .Where(x => x.Result != "HEALTHY")
               .GroupBy(x => x.Location)
-              .OrderByDescending(x => x.Count())
               .Select(x => new
               {
-                  Location = x.Key,
+                  Location = $"{x.Key} ({x.Count()})",
                   Count = x.Count()
               })
+              .OrderByDescending(x => x.Count)
               .ToListAsync();
 
         var top5 = resultsGroup.Take(5).ToList();
@@ -60,7 +60,7 @@ public class DashboardViewModel : IDashboardViewModel
             var other = resultsGroup.Skip(5);
             top5.Add(new
             {
-                Location = "LAINNYA",
+                Location = $"LAINNYA ({other.Sum(x => x.Count)})",
                 Count = other.Sum(x => x.Count)
             });
         }
@@ -75,11 +75,12 @@ public class DashboardViewModel : IDashboardViewModel
     public async Task<DashboardStatsCounter> GetStatistics()
     {
         var totalReport = await _context.Predictions.CountAsync();
-        var negativeCount = await _context.Predictions.CountAsync(x => x.Result == "HEALTHY");
-        var positiveCount = totalReport - negativeCount;
+        var negativeCount = await _context.Predictions.CountAsync(x => x.Status == PredictionStatus.Success && x.Result == "HEALTHY");
+        var positiveCount = await _context.Predictions.CountAsync(x => x.Status == PredictionStatus.Success && x.Result != "HEALTHY");
 
         var mostInfected = await _context.Predictions
             .AsNoTracking()
+            .Where(x => x.Status == PredictionStatus.Success && x.Result != "HEALTHY")
             .GroupBy(x => x.Location)
             .Select(x => new
             {
@@ -89,7 +90,6 @@ public class DashboardViewModel : IDashboardViewModel
             .FirstOrDefaultAsync();
         var mostReport = await _context.Predictions
             .AsNoTracking()
-            .Where(x => x.Result != "HEALTHY")
             .GroupBy(x => x.Location)
             .Select(x => new
             {
