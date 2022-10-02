@@ -40,10 +40,28 @@ public class PadiDataContext : DbContext
             new()
             {
                 Id = Ulid.Parse("01GE24HFHHQZRRN024W32W8XF7"),
-                FullName = "NyankoAdmin",
-                Username = "nynanko",
-                Password = BCrypt.Net.BCrypt.HashPassword("sensei"),
+                FullName = "Fahmi Noor Fiqri",
+                Username = "fahmi",
+                Password = BCrypt.Net.BCrypt.HashPassword("fahmi"),
                 Role = UserRole.Administrator,
+                LastLoginAt = DateTime.Now,
+            },
+            new()
+            {
+                Id = Ulid.Parse("01GEBQMKK8SA2H2RSFXSCJFTMT"),
+                FullName = "Hanif Hanan Al-Jufri",
+                Username = "hanif",
+                Password = BCrypt.Net.BCrypt.HashPassword("hanif"),
+                Role = UserRole.Member,
+                LastLoginAt = DateTime.Now,
+            },
+            new()
+            {
+                Id = Ulid.Parse("01GEBQQ94E0Z8JBWGVJQNNH1N6"),
+                FullName = "Abimanyu Okysaputra Rachman",
+                Username = "abimanyu",
+                Password = BCrypt.Net.BCrypt.HashPassword("abimanyu"),
+                Role = UserRole.Member,
                 LastLoginAt = DateTime.Now,
             },
             new()
