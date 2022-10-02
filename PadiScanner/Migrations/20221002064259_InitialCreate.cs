@@ -35,11 +35,13 @@ namespace PadiScanner.Migrations
                     Location = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Latitude = table.Column<double>(type: "float", nullable: false),
                     Longitude = table.Column<double>(type: "float", nullable: false),
-                    OriginalImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OriginalImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     HeatmapImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OverlayedImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClippedImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Result = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    Result = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Probabilities = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UploaderId = table.Column<string>(type: "nvarchar(26)", maxLength: 26, nullable: false)
                 },
                 constraints: table =>
@@ -56,12 +58,12 @@ namespace PadiScanner.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "FullName", "LastLoginAt", "Password", "Role", "Username" },
-                values: new object[] { "01GE24HFHHQZRRN024W32W8XF7", "NyankoAdmin", new DateTime(2022, 9, 30, 11, 46, 23, 224, DateTimeKind.Local).AddTicks(9288), "$2a$11$FEpPdjhJgXKQjUMbp1X9p.Ib/esuzUbQag80eo9a.GVtHNC3C1NYm", 0, "nynanko" });
+                values: new object[] { "01GE24HFHHQZRRN024W32W8XF7", "NyankoAdmin", new DateTime(2022, 10, 2, 13, 42, 59, 74, DateTimeKind.Local).AddTicks(6877), "$2a$11$QvQADnPMFBKLgGQKCuxcNO8Ppvde0KO.6KQn/PmX8ypC4/rO3F/om", 0, "nynanko" });
 
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "FullName", "LastLoginAt", "Password", "Role", "Username" },
-                values: new object[] { "01GE24MT8165ZNXACDZYC8GMEQ", "Tamu", new DateTime(2022, 9, 30, 11, 46, 23, 375, DateTimeKind.Local).AddTicks(931), "$2a$11$GfwzqnN54cys82Jeg6lrW.mXBLhGcpSmpYzs3JbL406bft/Y.D1EG", 2, "tamu" });
+                values: new object[] { "01GE24MT8165ZNXACDZYC8GMEQ", "Tamu", new DateTime(2022, 10, 2, 13, 42, 59, 236, DateTimeKind.Local).AddTicks(6398), "$2a$11$qJQdZBMIILVJvXNEEk4fT./LLmmCzt3yeXZUe5OXINe9Dh0duj/.q", 2, "tamu" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Predictions_UploaderId",

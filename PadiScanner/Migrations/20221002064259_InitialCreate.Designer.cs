@@ -12,7 +12,7 @@ using PadiScanner.Infra;
 namespace PadiScanner.Migrations
 {
     [DbContext(typeof(PadiDataContext))]
-    [Migration("20220930044623_InitialCreate")]
+    [Migration("20221002064259_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,17 +48,24 @@ namespace PadiScanner.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("OriginalImageUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OverlayedImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Probabilities")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Result")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
@@ -111,8 +118,8 @@ namespace PadiScanner.Migrations
                         {
                             Id = "01GE24HFHHQZRRN024W32W8XF7",
                             FullName = "NyankoAdmin",
-                            LastLoginAt = new DateTime(2022, 9, 30, 11, 46, 23, 224, DateTimeKind.Local).AddTicks(9288),
-                            Password = "$2a$11$FEpPdjhJgXKQjUMbp1X9p.Ib/esuzUbQag80eo9a.GVtHNC3C1NYm",
+                            LastLoginAt = new DateTime(2022, 10, 2, 13, 42, 59, 74, DateTimeKind.Local).AddTicks(6877),
+                            Password = "$2a$11$QvQADnPMFBKLgGQKCuxcNO8Ppvde0KO.6KQn/PmX8ypC4/rO3F/om",
                             Role = 0,
                             Username = "nynanko"
                         },
@@ -120,8 +127,8 @@ namespace PadiScanner.Migrations
                         {
                             Id = "01GE24MT8165ZNXACDZYC8GMEQ",
                             FullName = "Tamu",
-                            LastLoginAt = new DateTime(2022, 9, 30, 11, 46, 23, 375, DateTimeKind.Local).AddTicks(931),
-                            Password = "$2a$11$GfwzqnN54cys82Jeg6lrW.mXBLhGcpSmpYzs3JbL406bft/Y.D1EG",
+                            LastLoginAt = new DateTime(2022, 10, 2, 13, 42, 59, 236, DateTimeKind.Local).AddTicks(6398),
+                            Password = "$2a$11$qJQdZBMIILVJvXNEEk4fT./LLmmCzt3yeXZUe5OXINe9Dh0duj/.q",
                             Role = 2,
                             Username = "tamu"
                         });

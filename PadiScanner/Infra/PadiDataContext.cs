@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PadiScanner.Data;
+using PadiScanner.Infra.Converters;
 
 namespace PadiScanner.Infra;
 
@@ -19,6 +20,9 @@ public class PadiDataContext : DbContext
             .Property(x => x.Id)
             .HasMaxLength(26)
             .HasConversion<UlidConverter>();
+        modelBuilder.Entity<PredictionHistory>()
+            .Property(x => x.Probabilities)
+            .HasConversion<ProbabilitiesConverter>();
         modelBuilder.Entity<PredictionHistory>()
             .HasOne(x => x.Uploader)
             .WithMany(x => x.Predictions)

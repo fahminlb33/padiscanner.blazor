@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace PadiScanner.Infra;
+namespace PadiScanner.Infra.Converters;
 
 public class UlidConverter : ValueConverter<Ulid, string>
 {

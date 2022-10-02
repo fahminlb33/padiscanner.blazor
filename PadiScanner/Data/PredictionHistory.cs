@@ -15,14 +15,24 @@ public class PredictionHistory
     public double Latitude { get; set; }
     public double Longitude { get; set; }
 
-    public Uri? OriginalImageUrl { get; set; }
+    public Uri OriginalImageUrl { get; set; }
     public Uri? HeatmapImageUrl { get; set; }
     public Uri? OverlayedImageUrl { get; set; }
     public Uri? ClippedImageUrl { get; set; }
-    [MaxLength(10)]
+    [MaxLength(100)]
     public string? Result { get; set; }
+    public PredictionStatus Status { get; set; }
+    public Dictionary<string, double>? Probabilities { get; set; } = new Dictionary<string, double>();
 
     [StringLength(26)]
     public Ulid UploaderId { get; set; }
     public User Uploader { get; set; }
+}
+
+public enum PredictionStatus
+{
+    Queued,
+    Processing,
+    Success,
+    Failed,
 }
