@@ -44,7 +44,8 @@ public class MapsViewModel : IMapsViewModel
             var reportByResult = new StringBuilder();
             foreach (var resultStatus in detection.Results.GroupBy(x => x.Result))
             {
-                reportByResult.AppendFormat("{0}: {1}<br />", resultStatus.Key, resultStatus.Count());
+                var key = string.IsNullOrWhiteSpace(resultStatus.Key) ? "MENUNGGU" : resultStatus.Key;
+                reportByResult.AppendFormat("{0}: {1}<br />", key, resultStatus.Count());
             }
             
             yield return new MarkerData

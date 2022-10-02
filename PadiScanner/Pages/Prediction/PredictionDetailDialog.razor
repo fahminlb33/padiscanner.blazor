@@ -11,11 +11,11 @@
     <DialogContent>
         <MudText>Pengunggah: @Model.Uploader.FullName</MudText>
         <MudText>Lokasi: @Model.Location</MudText>
+        <MudText>Status: @Model.Status</MudText>
         <MudText>Tanggal Diunggah: @Model.UploadedAt</MudText>
         <MudText>Tanggal Diproses: @Model.ProcessedAt</MudText>
-        <MudText>Status: @Model.Status</MudText>
-        <MudText>Hasil: <b>@Model.Result</b></MudText>
-        @if (Model.Probabilities != null)
+        <MudText>Hasil: <b>@(string.IsNullOrWhiteSpace(Model.Result) ? "-" : Model.Result)</b></MudText>
+        @if (Model.Probabilities != null && Model.Probabilities.Count > 0)
         {
             <MudText>Probabilitas Klasifikasi:</MudText>
 
