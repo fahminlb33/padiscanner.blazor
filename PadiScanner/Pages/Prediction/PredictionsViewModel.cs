@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using PadiScanner.Data;
 using PadiScanner.Infra;
 using PadiScanner.Infra.Services;
+using System.ComponentModel;
+using System.Security.Claims;
 
 namespace PadiScanner.Pages.Prediction;
 
@@ -11,6 +14,7 @@ public record PredictionImage(string ImageUrl, string Title);
 
 public interface IPredictionsViewModel
 {
+    Task<bool> CanDelete();
     Task<PredictionHistory?> Get(Ulid id);
     Task<PredictionHistory?> GetWithRelation(Ulid id);
     Task Delete(Ulid id);
@@ -22,11 +26,19 @@ public class PredictionsViewModel : IPredictionsViewModel
 {
     private readonly PadiDataContext _context;
     private readonly IBlobStorageService _blobStorage;
+    private readonly AuthenticationStateProvider _authProvider;
 
-    public PredictionsViewModel(PadiDataContext context, IBlobStorageService blobStorage)
+    public PredictionsViewModel(PadiDataContext context, IBlobStorageService blobStorage, AuthenticationStateProvider authProvider)
     {
         _context = context;
         _blobStorage = blobStorage;
+        _authProvider = authProvider;
+    }
+
+    public async Task<bool> CanDelete()
+    {
+        var authState = await _authProvider.GetAuthenticationStateAsync();
+        return authState.User.Claims.Single(x => x.Type == ClaimTypes.Role).Value == AppPolicies.Administrator;
     }
 
     public async Task<PredictionHistory?> Get(Ulid id)
@@ -41,6 +53,12 @@ public class PredictionsViewModel : IPredictionsViewModel
 
     public async Task Delete(Ulid id)
     {
+        // check if we can delete
+        if (!await CanDelete())
+        {
+            throw new PadiException("Anda tidak dapat menghapus entri ini.");
+        }
+
         // find the history
         var prediction = await _context.Predictions.FindAsync(id);
         if (prediction == null)
