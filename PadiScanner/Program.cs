@@ -48,6 +48,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddHttpClient();
 builder.Services.AddOptions();
+builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
 // add EF Core
 builder.Services.AddDbContext<PadiDataContext>(c => c.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
