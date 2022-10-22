@@ -189,7 +189,7 @@
         {
             // show confirmation
             var result = await dialogService.ShowMessageBox("Hapus?", $"Apakah Anda yakin ingin menghapus akun '{name}?'", yesText: "Hapus!", cancelText: "Batal");
-            if (result == false)
+            if (!result.HasValue || result == false)
             {
                 return;
             }
