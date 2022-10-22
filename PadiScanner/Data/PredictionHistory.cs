@@ -28,11 +28,3 @@ public class PredictionHistory
     public Ulid UploaderId { get; set; }
     public User Uploader { get; set; }
 }
-
-public enum PredictionStatus
-{
-    Queued,
-    Processing,
-    Success,
-    Failed,
-}

@@ -18,10 +18,3 @@ public class User
 
     public List<PredictionHistory> Predictions { get; set; } = new();
 }
-
-public enum UserRole
-{
-    Administrator,
-    Member,
-    Guest
-}
