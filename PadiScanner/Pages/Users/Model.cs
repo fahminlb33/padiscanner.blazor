@@ -8,11 +8,11 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<CreateRequest, User>()
-            .ForMember(x => x.Id, c => c.MapFrom(p => Ulid.NewUlid()));
+            .ForMember(x => x.Id, c => c.MapFrom(p => Ulid.NewUlid()))
+            .ForMember(x => x.Password, c => c.MapFrom(p => BCrypt.Net.BCrypt.HashPassword(p.Password)));
         CreateMap<User, EditRequest>();
     }
 }
-
 
 public class CreateRequest
 {

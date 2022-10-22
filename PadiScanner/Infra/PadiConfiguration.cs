@@ -19,8 +19,7 @@ public class AnalysisApiConfig
 
 public class StorageAccountConfig
 {
-    public string AccountName { get; set; }
-    public string AccountKey { get; set; }
+    public string ConnectionString { get; set; }
+    public string QueueName { get; set; }
     public string ContainerName { get; set; }
-    public string BlobHost => "https://" + AccountName + ".blob.core.windows.net";
 }

@@ -5,7 +5,6 @@ using MudBlazor.Services;
 using PadiScanner.Components.Geolocation;
 using PadiScanner.Data;
 using PadiScanner.Infra;
-using PadiScanner.Infra.Services;
 using PadiScanner.Pages.Auth;
 using PadiScanner.Pages.Dashboard;
 using PadiScanner.Pages.Maps;
@@ -69,20 +68,7 @@ builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddScoped<GlobalAppState>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
-
-builder.Services.AddHttpClient<IImageAnalysisService, ImageAnalysisService>(x =>
-{
-    var config = builder.Configuration.Get<PadiConfiguration>();
-    var credString = $"{config.AnalysisApi.Username}:{config.AnalysisApi.Password}";
-    var base64Cred = Convert.ToBase64String(Encoding.ASCII.GetBytes(credString));
-    
-    x.BaseAddress = new Uri(config.AnalysisApi.Host);
-    x.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Cred);
-    x.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("PadiScanner", "1.0"));
-});
-
-// add background service
-builder.Services.AddHostedService<PredictionBackgroundService>();
+builder.Services.AddScoped<IQueueService, QueueService>();
 
 // add view models
 builder.Services.AddScoped<IAuthViewModel, AuthViewModel>();

@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using PadiScanner.Data;
 using PadiScanner.Infra;
-using PadiScanner.Infra.Services;
-using System.ComponentModel;
 using System.Security.Claims;
 
 namespace PadiScanner.Pages.Prediction;
@@ -24,15 +22,17 @@ public interface IPredictionsViewModel
 
 public class PredictionsViewModel : IPredictionsViewModel
 {
+    private readonly AuthenticationStateProvider _authProvider;
     private readonly PadiDataContext _context;
     private readonly IBlobStorageService _blobStorage;
-    private readonly AuthenticationStateProvider _authProvider;
+    private readonly IQueueService _queueService;
 
-    public PredictionsViewModel(PadiDataContext context, IBlobStorageService blobStorage, AuthenticationStateProvider authProvider)
+    public PredictionsViewModel(PadiDataContext context, IBlobStorageService blobStorage, AuthenticationStateProvider authProvider, IQueueService queueService)
     {
         _context = context;
         _blobStorage = blobStorage;
         _authProvider = authProvider;
+        _queueService = queueService;
     }
 
     public async Task<bool> CanDelete()
@@ -133,6 +133,9 @@ public class PredictionsViewModel : IPredictionsViewModel
                 Uploader = uploader,
                 Status = PredictionStatus.Queued
             });
+
+            // add to queue
+            await _queueService.Enqueue(id);
         }
 
         // save changes

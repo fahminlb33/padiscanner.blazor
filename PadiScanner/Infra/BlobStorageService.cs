@@ -1,8 +1,7 @@
-﻿using Azure.Storage;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
 
-namespace PadiScanner.Infra.Services;
+namespace PadiScanner.Infra;
 
 public interface IBlobStorageService
 {
@@ -14,13 +13,13 @@ public class BlobStorageService : IBlobStorageService
 {
     private readonly PadiConfiguration _config;
     private readonly BlobServiceClient _client;
+    private readonly ILogger<BlobStorageService> _logger;
 
-    public BlobStorageService(IOptions<PadiConfiguration> options)
+    public BlobStorageService(IOptions<PadiConfiguration> options, ILogger<BlobStorageService> logger)
     {
         _config = options.Value;
-
-        var sharedKey = new StorageSharedKeyCredential(_config.StorageAccount.AccountName, _config.StorageAccount.AccountKey);
-        _client = new(new Uri(_config.StorageAccount.BlobHost), sharedKey);
+        _client = new(_config.StorageAccount.ConnectionString);
+        _logger = logger;
     }
 
     public async Task<Uri> Upload(string blobName, Stream stream)
@@ -28,13 +27,16 @@ public class BlobStorageService : IBlobStorageService
         var container = _client.GetBlobContainerClient(_config.StorageAccount.ContainerName);
         await container.UploadBlobAsync(blobName, stream);
 
-        return new Uri(new Uri(_config.StorageAccount.BlobHost), "padi/" + blobName);
+        _logger.LogInformation("Blob uploaded: {0}", blobName);
+        return new Uri(_client.Uri, "padi/" + blobName);
     }
 
     public async Task Delete(string blobName)
     {
         var container = _client.GetBlobContainerClient(_config.StorageAccount.ContainerName);
         await container.DeleteBlobIfExistsAsync(blobName);
+
+        _logger.LogInformation("Blob deleted: {0}", blobName);
     }
 
     public static string BlobNameFromUri(Uri uri)
