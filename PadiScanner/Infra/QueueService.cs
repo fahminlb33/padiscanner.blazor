@@ -15,8 +15,13 @@ public class QueueService : IQueueService
 
     public QueueService(IOptions<PadiConfiguration> options, ILogger<QueueService> logger)
     {
-        _client = new(options.Value.StorageAccount.ConnectionString, options.Value.StorageAccount.QueueName);
         _logger = logger;
+        
+        var config = options.Value;
+        _client = new(config.StorageAccount.ConnectionString, config.StorageAccount.QueueName, new QueueClientOptions
+        {
+            MessageEncoding = QueueMessageEncoding.Base64,
+        });
     }
 
     public async Task Enqueue(Ulid jobId)
