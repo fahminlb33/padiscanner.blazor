@@ -87,7 +87,9 @@ public class DashboardViewModel : IDashboardViewModel
                 Location = x.Key,
                 Count = x.Count()
             })
+            .OrderByDescending(x => x.Count)
             .FirstOrDefaultAsync();
+
         var mostReport = await _context.Predictions
             .AsNoTracking()
             .GroupBy(x => x.Location)
@@ -96,6 +98,7 @@ public class DashboardViewModel : IDashboardViewModel
                 Location = x.Key,
                 Count = x.Count()
             })
+            .OrderByDescending(x => x.Count)
             .FirstOrDefaultAsync();
 
         return new DashboardStatsCounter
