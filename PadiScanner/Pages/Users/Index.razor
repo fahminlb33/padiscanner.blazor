@@ -117,7 +117,7 @@
                 return;
             }
 
-            // show 
+            // show
             var parameters = new DialogParameters { ["Model"] = mapper.Map<EditRequest>(user) };
             var dialog = dialogService.Show<EditUserDialog>("Ubah Data", parameters);
             var result = await dialog.Result;
@@ -127,7 +127,10 @@
             }
 
             // update data
-            await vm.Edit((EditRequest)result.Data);
+            var reqData = (EditRequest)result.Data;
+            reqData.Id = id;
+            
+            await vm.Edit(reqData);
 
             // reload data
             snackbar.Add("Data berhasil disimpan.", Severity.Success);
@@ -157,7 +160,7 @@
             }
 
             // show dialog
-            var parameters = new DialogParameters { ["Model"] = new ChangePasswordRequest { Id = id } };
+            var parameters = new DialogParameters { ["Model"] = new ChangePasswordRequest() };
             var dialog = dialogService.Show<ChangePasswordDialog>("Ganti Password");
             var result = await dialog.Result;
             if (result.Cancelled)
@@ -166,7 +169,10 @@
             }
 
             // update data
-            await vm.ChangePassword((ChangePasswordRequest)result.Data);
+            var reqData = (ChangePasswordRequest)result.Data;
+            reqData.Id = id;
+            
+            await vm.ChangePassword(reqData);
 
             // reload data
             snackbar.Add("Password berhasil diubah berhasil disimpan.", Severity.Success);
