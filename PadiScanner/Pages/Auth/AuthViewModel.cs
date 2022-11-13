@@ -34,7 +34,6 @@ public class AuthViewModel : IAuthViewModel
     {
         // find the user
         var user = await _context.Users
-            .AsNoTracking()
             .Where(x => x.Username == username)
             .FirstOrDefaultAsync();
 
@@ -62,9 +61,12 @@ public class AuthViewModel : IAuthViewModel
     {
         // find the guest login
         var user = await _context.Users
-            .AsNoTracking()
             .Where(x => x.Role == UserRole.Guest)
             .SingleAsync();
+
+        // save last change
+        user.LastLoginAt = DateTime.Now;
+        await _context.SaveChangesAsync();
 
         // set login state
         await _authProvider.LoginAsync(user);
