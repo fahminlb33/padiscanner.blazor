@@ -1,6 +1,7 @@
 ﻿@using PadiScanner.Data
 
 @inject IJSRuntime jsruntime;
+@inject NavigationManager navman;
 
 <MudDialog>
     <TitleContent>
@@ -11,10 +12,18 @@
     <DialogContent>
         <MudText>Pengunggah: @Model.Uploader.FullName</MudText>
         <MudText>Lokasi: @Model.Location</MudText>
-        <MudText>Status: @Model.Status</MudText>
         <MudText>Tanggal Diunggah: @Model.UploadedAt</MudText>
         <MudText>Tanggal Diproses: @Model.ProcessedAt</MudText>
+        <br />
+        <MudText>Status: @Model.Status</MudText>
         <MudText>Hasil: <b>@(string.IsNullOrWhiteSpace(Model.Result) ? "-" : Model.Result)</b></MudText>
+        @if (Model.Severity > 0)
+        {
+            <MudText>Tingkat keparahan: <b>@(Model.Severity.ToString("P2"))</b></MudText>
+        }else
+        {
+            <MudText>Tingkat keparahan: Tidak diketahui.</MudText>
+        }
         @if (Model.Probabilities != null && Model.Probabilities.Count > 0)
         {
             <MudText>Probabilitas Klasifikasi:</MudText>
@@ -39,8 +48,13 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="OpenInGmap" StartIcon="@Icons.Material.Filled.Map">Buka di Google Maps</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="Close">Tutup</MudButton>
+        <MudTooltip Text="Lihat informasi penyakit di Wiki PadiScanner">
+            <MudButton Color="Color.Info" Variant="Variant.Text" OnClick="OpenInWiki" StartIcon="@Icons.Material.Filled.Book">Info Penyakit</MudButton>
+        </MudTooltip>
+        <MudTooltip Text="Lihat lokasi deteksi di Google Maps">
+            <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="OpenInGmap" StartIcon="@Icons.Material.Filled.Map">Lihat Google Maps</MudButton>
+        </MudTooltip>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Close">Tutup</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -54,6 +68,11 @@
     private void Close()
     {
         MudDialog.Close();
+    }
+
+    private void OpenInWiki()
+    {
+        navman.NavigateTo($"/wiki?topic={Model.Result?.ToLowerInvariant()}");
     }
 
     private async Task OpenInGmap()

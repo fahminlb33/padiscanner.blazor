@@ -1,0 +1,122 @@
+﻿@page "/wiki"
+
+@inject IJSRuntime js;
+
+<PageTitle>WikiPadi</PageTitle>
+
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <MudText Typo="Typo.h4">WikiPadi</MudText>
+    <MudText Typo="Typo.subtitle1">Informasi seputar aplikasi PadiScanner, penyakit padi dan penanganannya.</MudText>
+</div>
+
+<MudText Typo="Typo.h4" id="into" Class="mt-7 mb-2">1. PadiScanner</MudText>
+<MudText>
+    PadiScanner adalah aplikasi berbasis web yang dibuat untuk membantu petani padi dalam mendeteksi penyakit pada tanaman padi.
+    Aplikasi ini merupakan implementasi dari penelitian skripsi Fahmi (salah satu pencipta aplikasi ini) yang berjudul
+    <i>Klasifikasi Penyakit pada Tanaman Padi menggunakan Transfer Learning MobileNetV2 Terbantu Gradient-weighted Class Activation Mapping (Grad-CAM)</i>.
+    Aplikasi ini dapat melakukan klasifikasi pada empat kategori penyakit padi dengan akurasi mencapai 99,9%.
+    <br /><br />
+    Aplikasi ini dibuat menggunakan .NET Blazor Server sebagai antarmuka laman dan TensorFlow untuk melakukan klasifikasi menggunakan model berbasis <i>deep learning</i>.
+</MudText>
+
+<MudText Typo="Typo.h5" id="keparahan" Class="mt-5 mb-2">1.1. Prediksi Penyakit Padi</MudText>
+<MudText>
+    Untuk melakukan klasifikasi atau prediksi jenis penyakit padi, aplikasi PadiScanner dapat menggunakan gambar/citra yang dapat diambil menggunakan kamera
+    dan kemudian sistem akan memberikan presentase probabilitas untuk tiap-tiap kategori penyakit yang terdapat pada sistem.
+    Model prediksi dibuat menggunakan 7.077 sampel citra dan menggunakan <i>pretrained model MobileNetV2</i> untuk membangun model klasifikasi. Dengan menggunakan metode
+    <i>transfer learning</i>, model prediksi yang dibuat mampu mencapai akurasi hingga 99,9%, serta dilengkapi dengan integrasi dengan metode
+    <i>Gradient-Weighted Class Activation Mapping (Grad-CAM)</i>, PadiScanner mampu menghasilkan <i>heatmap</i> yang menunjukkan aktivitas model
+    <i>convolutional neural network (CNN)</i> yang akhirnya menunjukkan lokasi penyakit pada gambar padi.
+</MudText>
+
+<MudText Typo="Typo.h5" id="keparahan" Class="mt-5 mb-2">1.2. Prediksi Keparahan Penyakit</MudText>
+<MudText>
+    Prediksi keparahan penyakit padi merupakan fitur untuk memprediksi seberapa parah padi sudah rusak berdasarkan rata-rata sebaran intensitas <i>heatmap Grad-CAM</i>.
+    Secara matematis, nilai keparahan penyakit padi dinotasikan sebagai rata-rata dari semua piksel dibagi 255 (nilai maksimum piksel). Oleh karena itu, hasil prediksi
+    ini bukanlah pendekatan prediksi cakupan penyakit berdasarkan pakar, melainkan estimasi bedasarkan pendekatan pengolahan citra.
+    <br /><br />
+    Perlu diperhatikan bahwa persentase keparahan padi terbatas pada estimasi sebaran <i>heatmap</i>, sehingga nilai ini mungkin tidak reliabel.
+</MudText>
+
+<MudText Typo="Typo.h4" id="penyakit" Class="mt-7 mb-2">2. Penyakit Padi</MudText>
+<MudText>
+    Saat ini sistem dapat mengklasifikasi empat jenis penyakit padi, yaitu hawar padi (<i>bacterial blight</i>), busuk leher (<i>blast</i>), 
+    bercak daun (<i>brown spot</i>), dan tungro.
+    <br /><br />
+    Catatan:<br />
+    Selain keempat jenis penyakit yang didukung aplikasi, sistem dapat menghasilkan klasifikasi tetapi hasil klasifikasi mungkin tidak reliabel.
+</MudText>
+
+<MudText Typo="Typo.h5" id="bacterialblight" Class="mt-5 mb-2">2.1. Hawar Padi (<i>Bacterial Blight</i>)</MudText>
+<MudText>
+    <b>Bacterial blight (hawar padi)</b>, penyakit ini disebabkan oleh <i>Xanthomonas oryzae pv.</i> dan merupakan salah
+    satu penyakit utama yang menyerang tanaman padi (BBPadi, 2015). Padi yang terinfeksi bakteri ini akan menyebabkan daun
+    padi menguning pada tepi daun yang menyebabkan tanaman menjadi layu dan akhirnya mati, gejala ini disebut sebagai
+    <i>kresek</i>.
+    <br /><br />
+    <b>Kendali Hama</b>
+    <ol class="mt-0">
+        <li>Manajemen sanitasi irigasi dan batang padi merupakan salah satu metode yang efektif untuk mengurangi inokulasi bakteri dari biji padi.</li>
+        <li>Penggunaan varietas padi yang telah divaksinasi dari bakteri ini dapat lebih lanjut mencegah infeksi bakteri.</li>
+        <li>Penggunaan pestisida dapat digunakan tetapi tidak ditemukan efektivitas yang baik dan terdapat beberapa bukti adanya toksisitas pada mamalia.</li>
+    </ol>
+</MudText>
+
+<MudText Typo="Typo.h5" id="blast" Class="mt-5 mb-2">2.2. Busuk Leher (<i>Blast</i>)</MudText>
+<MudText>
+    <b>Brown spot (bercak daun)</b>, penyakit ini dapat diidentifikasi dengan munculnya bercak cokelat pada batang daun
+    padi yang biasanya disebabkan oleh kurangnya unsur hara pada tanah utamanya unsur kalium dan tercatat dapat
+    menyebabkan kerugian hasil panen mulai dari 50 hingga 90 persen (Herlisa, 2022). Penyebab lain dari penyakit ini
+    adalah infeksi jamur <i>Helminthosporium oryzae</i> yang bisa menginfeksi batang daun padi hingga gabah dan beras sehingga
+    menyebabkan padi tidak dapat dikonsumsi (Mew dkk., 2018).
+    <br /><br />
+    <b>Kendali Hama</b>
+    <ol class="mt-0">
+        <li>Mengkultivasi padi yang telah divaksinasi merupakan salah satu cara paling efektif untuk mencegah penyakit ini.</li>
+        <li>Sanitasi irigasi dan pembakaran sisa batang padi setelah panen dapat mengurangi tumbuhnya jamur pada lahan sawah.</li>
+    </ol>
+</MudText>
+
+<MudText Typo="Typo.h5" id="brownspot" Class="mt-5 mb-2">2.3. Bercak Daun (<i>Brown Spot</i>)</MudText>
+<MudText>
+    <b>Blast (busuk leher)</b>, merupakan penyakit yang disebabkan oleh jamur <i>Pyricularia grisea</i> (Mew dkk., 2018). Saat
+    penyakit ini menyerang batang padi, maka batang dapat berubah menjadi cokelat dan kemudian membusuk. Apabila tanaman
+    padi dapat bertahan dan menghasilkan gabah, maka jamur ini juga dapat menginfeksi gabah dan akhirnya menyebar ke
+    tanaman padi baru melalui bibit yang terinfeksi. Penyakit blas juga memiliki ciri yang mirip seperti bercak daun,
+    perbedaannya adalah pada infeksi blas titik tengah bercak padi berwarna putih dan bukan berwarna cokelat.
+    <br /><br />
+    <b>Kendali Hama</b>
+    <ol class="mt-0">
+        <li>Menggunakan fungisida untuk menekan pertumbuhan jamur.</li>
+        <li>Mengkultivasi padi yang telah divaksinasi untuk mencegah penyakit ini.</li>
+    </ol>
+</MudText>
+
+<MudText Typo="Typo.h5" id="tungro" Class="mt-5 mb-2">2.4. Tungro</MudText>
+<MudText>
+    <b>Tungro</b>, penyakit ini disebabkan oleh dua virus yaitu rice <i>tungro spherical virus (RTSV)</i>
+    dan <i>rice tungro bacilliform virus (RTBV)</i>. Virus ini bisa ditularkan melalui serangga, khususnya
+    wereng hijau. Tanaman padi yang terinfeksi tungro akan menampilkan gejala seperti daun yang menguning
+    dan melintir dan pertumbuhan padi menjadi terhambat dan tanaman menjadi kerdil atau ruas memendek (Hendri, 2020).
+    <br /><br />
+    <b>Kendali Hama</b>
+    <ol class="mt-0">
+        <li>Penggunan insektisida dapat membantu menekan persebaran serangga vektor penyakit tungro.</li>
+        <li>Metode kultivasi menggunakan varietas padi yang resisten terhadap virus tungro dan jadwal penanaman yang terkontrol.</li>
+        <li>Rotasi penanaman antara padi dan palawija lain dapat membantu menekan populasi tungro.</li>
+    </ol>
+</MudText>
+
+<MudText Class="mt-7 mb-12">...</MudText>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "topic")]
+    public string? Topic { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (string.IsNullOrWhiteSpace(Topic)) return;
+        js.InvokeAsync<bool>("scrollToElementId", Topic);
+    }
+}

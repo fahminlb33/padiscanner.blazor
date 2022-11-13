@@ -23,6 +23,7 @@ public class PredictionHistory
     public string? Result { get; set; }
     public PredictionStatus Status { get; set; }
     public Dictionary<string, double>? Probabilities { get; set; } = new Dictionary<string, double>();
+    public double Severity { get; set; }
 
     [StringLength(26)]
     public Ulid UploaderId { get; set; }

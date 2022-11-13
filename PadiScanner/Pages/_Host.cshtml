@@ -34,6 +34,18 @@
         <a class="dismiss">🗙</a>
     </div>
 
+    <script>
+        window.scrollToElementId = (elementId) => {
+            console.info('scrolling to element', elementId);
+            var element = document.getElementById(elementId);
+            if (!element) {
+                console.warn('element was not found', elementId);
+                return false;
+            }
+            element.scrollIntoView();
+            return true;
+        }
+    </script>
     <script src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js" integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s=" crossorigin=""></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="~/js/leaflet-map.js" type="module"></script>
